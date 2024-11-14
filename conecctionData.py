@@ -1,27 +1,23 @@
-#para ejecutar las pruebas se debe realizar quitar los # de los main y las llamadas
 import pyodbc
 from datetime import datetime
 
 def connect_to_sql_server():
-    server = 'localhost' #Instancia de la base de datos
+    server = 'localhost' # Instancia de la base de datos
     database = 'TEST'
     username = 'pythonUser'
     password = '12345678'
 
-    #Connection string for SQL Server
+    # Connection string for SQL Server
     conn_str = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}'
 
     try:
-        #Establish Connection
+        # Establish Connection
         connection = pyodbc.connect(conn_str)
         print("Connection established successfully")
         return connection
     except pyodbc.Error as e:
-        print("Connection Failed")
+        print("Connection Failed:", e)
         return None
-
-connect_to_sql_server()
-
 
 def insertar_prestamo(codigo_usuario, codigo_ejemplar, fecha_prestamo, fecha_devolucion):
     conn = connect_to_sql_server()
@@ -38,15 +34,6 @@ def insertar_prestamo(codigo_usuario, codigo_ejemplar, fecha_prestamo, fecha_dev
         finally:
             cursor.close()
             conn.close()
-#if __name__ == '__main__':
- #   codigo_usuario = 10003
-  #  codigo_ejemplar = 101
-   # fecha_prestamo = datetime.now()  # Fecha actual
-    #fecha_devolucion = datetime(2024, 11, 15)  # Fecha de devolución
-
-   # insertar_prestamo(codigo_usuario, codigo_ejemplar, fecha_prestamo, fecha_devolucion)
-
-
 
 def consultar_libros(codigo_libro=None, titulo=None, isbn=None, paginas=None, editorial=None):
     conn = connect_to_sql_server()
@@ -55,9 +42,7 @@ def consultar_libros(codigo_libro=None, titulo=None, isbn=None, paginas=None, ed
             cursor = conn.cursor()
             cursor.execute("""
                 EXEC ConsultarLibros @CodigoLibro = ?, @Titulo = ?, @ISBN = ?, @Paginas = ?, @Editorial = ?
-            """, (codigo_libro, titulo, isbn, paginas, editorial)) 
-            
-            # Obtener y mostrar los resultados
+            """, (codigo_libro, titulo, isbn, paginas, editorial))
             rows = cursor.fetchall()
             for row in rows:
                 print(row)
@@ -66,22 +51,6 @@ def consultar_libros(codigo_libro=None, titulo=None, isbn=None, paginas=None, ed
         finally:
             cursor.close()
             conn.close()
-
-# Ejemplo de uso
-#if __name__ == '__main__':
-    # Consultar por título
-   # consultar_libros(titulo='EL Quijote')
-
-    # Consultar por ISBN
-  #  consultar_libros(isbn='4781234567890')
-
-    # Consultar por editorial
-   # consultar_libros(editorial='Editorial Anaya')
-
-    # Consultar por cantidad de páginas
-  #  consultar_libros(paginas=863)
-
-
 
 def actualizar_autor(codigo, nombre):
     conn = connect_to_sql_server()
@@ -99,12 +68,6 @@ def actualizar_autor(codigo, nombre):
             cursor.close()
             conn.close()
 
-# Ejemplo de uso
-#if __name__ == '__main__':
-    # Actualizar el nombre del autor con código 1
-   #actualizar_autor(codigo=1, nombre='Gabriel García Márquez')
-
-
 def eliminar_estudiante(codigo_usuario):
     conn = connect_to_sql_server()
     if conn:
@@ -121,7 +84,47 @@ def eliminar_estudiante(codigo_usuario):
             cursor.close()
             conn.close()
 
-# Ejemplo de uso
-#if __name__ == '__main__':
-    # Eliminar el estudiante con código 1
-    #eliminar_estudiante(codigo_usuario=2)
+def menu():
+    while True:
+        print("\n--- MENÚ PRINCIPAL ---")
+        print("1. Insertar Préstamo")
+        print("2. Consultar Libros")
+        print("3. Actualizar Autor")
+        print("4. Eliminar Estudiante")
+        print("0. Salir")
+
+        opcion = input("Selecciona una opción: ")
+
+        if opcion == '1':
+            codigo_usuario = int(input("Código del Usuario: "))
+            codigo_ejemplar = int(input("Código del Ejemplar: "))
+            fecha_prestamo = datetime.now()  # Fecha actual
+            fecha_devolucion = datetime.strptime(input("Fecha de Devolución (YYYY-MM-DD): "), '%Y-%m-%d')
+            insertar_prestamo(codigo_usuario, codigo_ejemplar, fecha_prestamo, fecha_devolucion)
+        
+        elif opcion == '2':
+            titulo = input("Título del Libro (dejar vacío si no aplica): ")
+            isbn = input("ISBN (dejar vacío si no aplica): ")
+            paginas = input("Número de Páginas (dejar vacío si no aplica): ")
+            editorial = input("Editorial (dejar vacío si no aplica): ")
+            consultar_libros(titulo=titulo or None, isbn=isbn or None, paginas=int(paginas) if paginas else None, editorial=editorial or None)
+        
+        elif opcion == '3':
+            codigo = int(input("Código del Autor: "))
+            nombre = input("Nuevo Nombre del Autor: ")
+            actualizar_autor(codigo, nombre)
+        
+        elif opcion == '4':
+            codigo_usuario = int(input("Código del Estudiante: "))
+            eliminar_estudiante(codigo_usuario)
+        
+        elif opcion == '0':
+            print("Saliendo del programa...")
+            break
+        
+        else:
+            print("Opción no válida, intenta de nuevo.")
+
+# Ejecutar el menú
+if __name__ == '__main__':
+    menu()
